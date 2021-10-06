@@ -10,6 +10,7 @@ param workspaceArmId string
 param workspaceName string
 param tags object
 
+var groupName = 'amlworkspace'
 
 var privateDnsZoneName =  {
   azureusgovernment: 'privatelink.api.ml.azure.us'
@@ -34,7 +35,7 @@ resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020
         name: 'workspace-pe'
         properties: {
           groupIds: [
-            'amlworkspace'
+            groupName
           ]
           privateLinkServiceId: workspaceArmId
           requestMessage: ''
@@ -54,55 +55,6 @@ resource amlPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   ]
   location: 'global'
   properties: {
-  }
-}
-
-resource amlCertPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${amlPrivateDnsZone.name}/${workspaceId}.workspace.${location}.cert'
-  dependsOn: [
-    amlPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    aRecords: [
-      {
-        ipv4Address: machineLearningPrivateEndpoint.properties.customDnsConfigs[0].ipAddresses[0]
-      }
-    ]
-  }
-}
-
-resource amlPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${amlPrivateDnsZone.name}/${workspaceId}.workspace.${location}'
-  dependsOn: [
-    amlPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    aRecords: [
-      {
-        ipv4Address: machineLearningPrivateEndpoint.properties.customDnsConfigs[0].ipAddresses[0]
-      }
-    ]
-  }
-}
-
-resource amlPrivateDnsZoneSOARecord 'Microsoft.Network/privateDnsZones/SOA@2018-09-01' = {
-  name: '${amlPrivateDnsZone.name}/@'
-  dependsOn: [
-    amlPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    soaRecord: {
-      email: 'azureprivatedns-host.microsoft.com'
-      expireTime: 2419200
-      host: 'azureprivatedns.net'
-      minimumTtl: 10
-      refreshTime: 3600
-      retryTime: 300
-      serialNumber: 1
-    }
   }
 }
 
@@ -131,40 +83,6 @@ resource notebookPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' =
   }
 }
 
-resource notebookPrivateDnsZoneSOARecord 'Microsoft.Network/privateDnsZones/SOA@2018-09-01' = {
-  name: '${notebookPrivateDnsZone.name}/@'
-  dependsOn: [
-    notebookPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    soaRecord: {
-      email: 'azureprivatedns-host.microsoft.com'
-      expireTime: 2419200
-      host: 'azureprivatedns.net'
-      minimumTtl: 10
-      refreshTime: 3600
-      retryTime: 300
-      serialNumber: 1
-    }
-  }
-}
-
-resource notebookPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${notebookPrivateDnsZone.name}/ml-${workspaceName}-${location}-${workspaceId}'
-  dependsOn: [
-    notebookPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    aRecords: [
-      {
-        ipv4Address: machineLearningPrivateEndpoint.properties.customDnsConfigs[2].ipAddresses[0]
-      }
-    ]
-  }
-}
-
 resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
   name: '${notebookPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
   dependsOn: [
@@ -176,5 +94,29 @@ resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtu
     virtualNetwork: {
       id: virtualNetworkId
     }
+  }
+}
+
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
+  name: '${machineLearningPrivateEndpoint.name}/${groupName}-PrivateDnsZoneGroup'
+  dependsOn: [
+    machineLearningPrivateEndpoint
+    notebookPrivateDnsZone
+  ]
+  properties:{
+    privateDnsZoneConfigs: [
+      {
+        name: privateDnsZoneName[environment().name]
+        properties:{
+          privateDnsZoneId: amlPrivateDnsZone.id
+        }
+      }
+      {
+        name: privateAznbDnsZoneName[environment().name]
+        properties:{
+          privateDnsZoneId: notebookPrivateDnsZone.id
+        }
+      }
+    ]
   }
 }
