@@ -181,37 +181,21 @@ resource blobPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   }
 }
 
-resource blobPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${blobPrivateDnsZone.name}/${storage.name}'
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
+  name: '${storagePrivateEndpointBlob.name}/blob-PrivateDnsZoneGroup'
   dependsOn: [
+    storagePrivateEndpointBlob
     blobPrivateDnsZone
   ]
-  properties: {
-    ttl: 3600
-    aRecords: [
+  properties:{
+    privateDnsZoneConfigs: [
       {
-        ipv4Address: storagePrivateEndpointBlob.properties.customDnsConfigs[0].ipAddresses[0]
+        name: blobPrivateDnsZoneName[toLower(environment().name)]
+        properties:{
+          privateDnsZoneId: blobPrivateDnsZone.id
+        }
       }
     ]
-  }
-}
-
-resource blobPrivateDnsZoneSOARecord 'Microsoft.Network/privateDnsZones/SOA@2018-09-01' = {
-  name: '${blobPrivateDnsZone.name}/@'
-  dependsOn: [
-    blobPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    soaRecord: {
-      email: 'azureprivatedns-host.microsoft.com'
-      expireTime: 2419200
-      host: 'azureprivatedns.net'
-      minimumTtl: 10
-      refreshTime: 3600
-      retryTime: 300
-      serialNumber: 1
-    }
   }
 }
 
@@ -239,37 +223,21 @@ resource filePrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   }
 }
 
-resource filePrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${filePrivateDnsZone.name}/${storage.name}'
+resource filePrivateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
+  name: '${storagePrivateEndpointFile.name}/flie-PrivateDnsZoneGroup'
   dependsOn: [
+    storagePrivateEndpointFile
     filePrivateDnsZone
   ]
-  properties: {
-    ttl: 3600
-    aRecords: [
+  properties:{
+    privateDnsZoneConfigs: [
       {
-        ipv4Address: storagePrivateEndpointFile.properties.customDnsConfigs[0].ipAddresses[0]
+        name: filePrivateDnsZoneName[toLower(environment().name)]
+        properties:{
+          privateDnsZoneId: filePrivateDnsZone.id
+        }
       }
     ]
-  }
-}
-
-resource filePrivateDnsZoneSOARecord 'Microsoft.Network/privateDnsZones/SOA@2018-09-01' = {
-  name: '${filePrivateDnsZone.name}/@'
-  dependsOn: [
-    filePrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    soaRecord: {
-      email: 'azureprivatedns-host.microsoft.com'
-      expireTime: 2419200
-      host: 'azureprivatedns.net'
-      minimumTtl: 10
-      refreshTime: 3600
-      retryTime: 300
-      serialNumber: 1
-    }
   }
 }
 
