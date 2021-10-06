@@ -16,6 +16,9 @@ var privateDnsZoneName = {
   azurechinacloud: 'privatelink.azurecr.cn'
   azurecloud: 'privatelink.azurecr.io'
   }
+
+ var groupName = 'registry' 
+
 // Resources
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2020-11-01-preview' = {
   name: containerRegistryNameCleaned
@@ -66,7 +69,7 @@ resource containerRegistryPrivateEndpoint 'Microsoft.Network/privateEndpoints@20
         name: 'acr-pe'
         properties: {
           groupIds: [
-            'registry'
+            groupName
           ]
           privateLinkServiceId: containerRegistry.id
           requestMessage: ''
@@ -90,54 +93,25 @@ resource acrPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   }
 }
 
-resource acrDataPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${acrPrivateDnsZone.name}/${containerRegistry.name}.${location}.data'
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
+  name: '${containerRegistryPrivateEndpoint.name}/${groupName}-PrivateDnsZoneGroup'
   dependsOn: [
+    containerRegistryPrivateEndpoint
     acrPrivateDnsZone
   ]
-  properties: {
-    ttl: 3600
-    aRecords: [
+  properties:{
+    privateDnsZoneConfigs: [
       {
-        ipv4Address: containerRegistryPrivateEndpoint.properties.customDnsConfigs[0].ipAddresses[0]
+        name: privateDnsZoneName[toLower(environment().name)]
+        properties:{
+          privateDnsZoneId: acrPrivateDnsZone.id
+        }
       }
     ]
   }
 }
 
-resource acrPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${acrPrivateDnsZone.name}/${containerRegistry.name}'
-  dependsOn: [
-    acrPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    aRecords: [
-      {
-        ipv4Address: containerRegistryPrivateEndpoint.properties.customDnsConfigs[1].ipAddresses[0]
-      }
-    ]
-  }
-}
 
-resource acrPrivateDnsZoneSOARecord 'Microsoft.Network/privateDnsZones/SOA@2018-09-01' = {
-  name: '${acrPrivateDnsZone.name}/@'
-  dependsOn: [
-    acrPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    soaRecord: {
-      email: 'azureprivatedns-host.microsoft.com'
-      expireTime: 2419200
-      host: 'azureprivatedns.net'
-      minimumTtl: 10
-      refreshTime: 3600
-      retryTime: 300
-      serialNumber: 1
-    }
-  }
-}
 
 resource acrPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
   name: '${acrPrivateDnsZone.name}/${uniqueString(containerRegistry.id)}'
