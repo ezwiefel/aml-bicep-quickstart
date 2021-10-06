@@ -2,10 +2,19 @@
 targetScope = 'resourceGroup'
 
 // Parameters
-param location string
-param tags object
+@description('The Azure Region to deploy the resrouce group into')
+param location string = resourceGroup().location
+
+@description('Tags to apply to the Key Vault Instance')
+param tags object = {}
+
+@description('The name of the Key Vault')
 param keyvaultName string
+
+@description('The Subnet ID where the Key Vault Private Link is to be created')
 param subnetId string
+
+@description('The VNet ID where the Key Vault Private Link is to be created')
 param virtualNetworkId string
 
 // Resources
@@ -14,7 +23,8 @@ var privateDnsZoneName =  {
   azureusgovernment: 'privatelink.vaultcore.usgovcloudapi.net'
   azurechinacloud: 'privatelink.vaultcore.azure.cn'
   azurecloud: 'privatelink.vaultcore.azure.net'
-}
+  }
+var privateDnsGroupName = 'vault'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
   name: keyvaultName
@@ -55,7 +65,7 @@ resource keyVaultPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020-11-01'
         name: 'keyvault-pe'
         properties: {
           groupIds: [
-            'vault'
+            privateDnsGroupName
           ]
           privateLinkServiceId: keyVault.id
           requestMessage: ''
@@ -74,41 +84,24 @@ resource keyVaultPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' =
     keyVaultPrivateEndpoint
   ]
   location: 'global'
-  properties: {
-  }
+  properties: {}
 }
 
-resource keyVaultPrivateDnsZoneARecord 'Microsoft.Network/privateDnsZones/A@2018-09-01' = {
-  name: '${keyVaultPrivateDnsZone.name}/${keyVault.name}'
+resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
+  name: '${keyVaultPrivateEndpoint.name}/${privateDnsGroupName}-PrivateDnsZoneGroup'
   dependsOn: [
+    keyVaultPrivateEndpoint
     keyVaultPrivateDnsZone
   ]
-  properties: {
-    ttl: 3600
-    aRecords: [
+  properties:{
+    privateDnsZoneConfigs: [
       {
-        ipv4Address: keyVaultPrivateEndpoint.properties.customDnsConfigs[0].ipAddresses[0]
+        name: privateDnsZoneName[toLower(environment().name)]
+        properties:{
+          privateDnsZoneId: keyVaultPrivateDnsZone.id
+        }
       }
     ]
-  }
-}
-
-resource keyVaultPrivateDnsZoneSOARecord 'Microsoft.Network/privateDnsZones/SOA@2018-09-01' = {
-  name: '${keyVaultPrivateDnsZone.name}/@'
-  dependsOn: [
-    keyVaultPrivateDnsZone
-  ]
-  properties: {
-    ttl: 3600
-    soaRecord: {
-      email: 'azureprivatedns-host.microsoft.com'
-      expireTime: 2419200
-      host: 'azureprivatedns.net'
-      minimumTtl: 10
-      refreshTime: 3600
-      retryTime: 300
-      serialNumber: 1
-    }
   }
 }
 
