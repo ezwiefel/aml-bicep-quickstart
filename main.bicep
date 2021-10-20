@@ -72,9 +72,25 @@ module vnet 'modules/vnet.bicep' = {
     vnetAddressPrefix: vnetAddressPrefix
     trainingSubnetPrefix: trainingSubnetPrefix
     scoringSubnetPrefix: scoringSubnetPrefix
-    azureBastionSubnetPrefix: azureBastionSubnetPrefix
   }
 }
+
+
+module bastion 'modules/bastion.bicep' = {
+  // Name of the deployment
+  name: 'bastion-${name}-${uniqueSuffix}-deployment'
+  dependsOn: [
+    vnet
+  ]
+  scope: resourceGroup()
+  params: {
+    location: location
+    vnetName: vnet.outputs.name
+    addressPrefix: azureBastionSubnetPrefix
+    
+  }
+}
+
 
 
 module storage 'modules/storage.bicep' = {
@@ -90,8 +106,8 @@ module storage 'modules/storage.bicep' = {
     // Name of the storage account
     storageName: 'st${name}${uniqueSuffix}'
     storageSkuName: 'Standard_LRS'
-    subnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-training'
-    virtualNetworkId: '${vnet.outputs.virtualNetworkId}'
+    subnetId: '${vnet.outputs.id}/subnets/snet-training'
+    virtualNetworkId: '${vnet.outputs.id}'
   }
 }
 
@@ -108,8 +124,8 @@ module keyvault 'modules/keyvault.bicep' = {
     tags: tags
     // Name of the keyvault
     keyvaultName: 'kv-${name}-${uniqueSuffix}'
-    subnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-training'
-    virtualNetworkId: '${vnet.outputs.virtualNetworkId}'
+    subnetId: '${vnet.outputs.id}/subnets/snet-training'
+    virtualNetworkId: '${vnet.outputs.id}'
   }
 }
 
@@ -125,8 +141,8 @@ module containerRegistry 'modules/containerregistry.bicep' = {
     tags: tags
     // Name of the container registry
     containerRegistryName: 'cr${name}${uniqueSuffix}'
-    subnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-training'
-    virtualNetworkId: '${vnet.outputs.virtualNetworkId}'
+    subnetId: '${vnet.outputs.id}/subnets/snet-training'
+    virtualNetworkId: '${vnet.outputs.id}'
   }
 }
 
@@ -165,10 +181,10 @@ module amlWorkspace 'modules/machinelearning.bicep' = {
     containerRegistryId: containerRegistry.outputs.containerRegistryId
     keyVaultId: keyvault.outputs.keyvaultId
     storageAccountId: storage.outputs.storageId
-    subnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-training'
-    computeSubnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-training'
-    aksSubnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-scoring'
-    virtualNetworkId: '${vnet.outputs.virtualNetworkId}'
+    subnetId: '${vnet.outputs.id}/subnets/snet-training'
+    computeSubnetId: '${vnet.outputs.id}/subnets/snet-training'
+    aksSubnetId: '${vnet.outputs.id}/subnets/snet-scoring'
+    virtualNetworkId: '${vnet.outputs.id}'
   }
 }
 
@@ -180,7 +196,7 @@ module dsvm 'modules/dsvmjumpbox.bicep' = {
     location: location
     // Name of the DSVM
     virtualMachineName: 'dsvm-${name}-${uniqueSuffix}'
-    subnetId: '${vnet.outputs.virtualNetworkId}/subnets/snet-training'
+    subnetId: '${vnet.outputs.id}/subnets/snet-training'
     adminUsername: dsvmJumpboxUsername
     adminPassword: dsvmJumpboxPassword
     networkSecurityGroupId: nsg.outputs.networkSecurityGroup 
