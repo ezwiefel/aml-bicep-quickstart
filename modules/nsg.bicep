@@ -155,8 +155,8 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           protocol: 'Tcp'
           sourcePortRange: '*'
           destinationPortRange: '443'
-          sourceAddressPrefix: '*'
-          destinationAddressPrefix: 'MicrosoftContainerRegistry.${location}'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'MicrosoftContainerRegistry'
           access: 'Allow'
           priority: 200
           direction: 'Outbound'
