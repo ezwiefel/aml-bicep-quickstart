@@ -1,10 +1,11 @@
-// This template is used to create a Storage account with a private endpoint.
+// Creates a storage account, private endpoints and DNS zones
 targetScope = 'resourceGroup'
 
-// Parameters
 param location string
 param tags object
 param storageName string
+param storagePleBlobName string
+param storagePleFileName string
 param subnetId string
 param virtualNetworkId string
 
@@ -20,20 +21,18 @@ param virtualNetworkId string
 ])
 param storageSkuName string = 'Standard_LRS'
 
-// Variables
 var storageNameCleaned = replace(storageName, '-', '')
 var blobPrivateDnsZoneName =  {
   azureusgovernment: 'privatelink.blob.core.usgovcloudapi.net'
   azurechinacloud: 'privatelink.blob.core.chinacloudapi.cn'
   azurecloud: 'privatelink.blob.core.windows.net'
-  }
+}
 var filePrivateDnsZoneName =  {
   azureusgovernment: 'privatelink.file.core.usgovcloudapi.net'
   azurechinacloud: 'privatelink.file.core.chinacloudapi.cn'
   azurecloud: 'privatelink.file.core.windows.net'
-  }
+}
 
-// Resources
 resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: storageNameCleaned
   location: location
@@ -95,16 +94,15 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   }
 }
 
-// Blob PE
 resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2020-11-01' = {
-  name: 'storage-blob-pe'
+  name: storagePleBlobName
   location: location
   tags: tags
   properties: {
     manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
-      {
-        name: 'storage-blob-pe'
+      { 
+        name: storagePleBlobName
         properties: {
           groupIds: [
             'blob'
@@ -122,27 +120,18 @@ resource storagePrivateEndpointBlob 'Microsoft.Network/privateEndpoints@2020-11-
     subnet: {
       id: subnetId
     }
-    /* customDnsConfigs: [
-      {
-        fqdn: '${storage.name}.blob.core.windows.net'
-        ipAddresses: [
-          '172.25.0.14'
-        ]
-      }
-    ] */
   }
 }
 
-//File
 resource storagePrivateEndpointFile 'Microsoft.Network/privateEndpoints@2020-11-01' = {
-  name: 'storage-file-pe'
+  name: storagePleFileName
   location: location
   tags: tags
   properties: {
     manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
       {
-        name: 'storage-file-pe'
+        name: storagePleFileName
         properties: {
           groupIds: [
             'file'
@@ -160,14 +149,6 @@ resource storagePrivateEndpointFile 'Microsoft.Network/privateEndpoints@2020-11-
     subnet: {
       id: subnetId
     }
-    /* customDnsConfigs: [
-      {
-        fqdn: '${storage.name}.file.core.windows.net'
-        ipAddresses: [
-          '172.25.0.14'
-        ]
-      }
-    ] */
   }
 }
 
@@ -255,5 +236,4 @@ resource filePrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNe
   }
 }
 
-// Outputs
 output storageId string = storage.id

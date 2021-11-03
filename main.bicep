@@ -1,182 +1,144 @@
-// This template is used to create a secure Azure Machine Learning workspace with CPU cluster, GPU cluster, Compute Instance and attached private AKS cluster.
-
+// Use this main template file to set up Azure Machine Learning end-to-end in a moderately secure set up
 targetScope = 'resourceGroup'
 
-// General parameters
-@description('Specifies the location for all resources.')
+// Parameters
+@description('Azure region used for the deployment of all resources.')
 param location string = resourceGroup().location
 
 @minLength(2)
 @maxLength(10)
-@description('Specifies the prefix for all resources created in this deployment.')
+@description('Prefix for all resource names.')
 param prefix string
 
-@description('Specifies the tags that you want to apply to all resources.')
+@description('Set of tags to apply to all resources.')
 param tags object = {}
 
-// Resource parameters
-// Vnet/Subnet address prefixes
-@description('Specifies the address prefix of the virtual network.')
+@description('Virtual network address prefix')
 param vnetAddressPrefix string = '192.168.0.0/16'
 
-@description('Specifies the address prefix of the training subnet.')
+@description('Training subnet address prefix')
 param trainingSubnetPrefix string = '192.168.0.0/24'
 
-@description('Specifies the address prefix of the scoring subnet.')
+@description('Scoring subnet address prefix')
 param scoringSubnetPrefix string = '192.168.1.0/24'
 
-@description('Specifies the address prefix of the azure bastion subnet.')
+@description('Bastion subnet address prefix')
 param azureBastionSubnetPrefix string = '192.168.250.0/27'
 
-// DSVM Jumpbox username and password
+@description('Jumbox virtual machine username')
 param dsvmJumpboxUsername string
+
 @secure()
+@description('Jumbox virtual machine password')
 param dsvmJumpboxPassword string
 
 // Variables
 var name = toLower('${prefix}')
 
 // Create a short, unique suffix, that will be unique to each resource group
-// The default 'uniqueString' function will return a 13 char string, here, we're taking 
-// the first 4 characters - which will reduce the uniqueness, but increase readability
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 4)
 
-// Resources
-
-module nsg 'modules/nsg.bicep' = {
-  // Name of the deploymnet
+// Virtual network and network security group
+module nsg 'modules/nsg.bicep' = { 
   name: 'nsg-${name}-${uniqueSuffix}-deployment'
   scope: resourceGroup()
   params: {
     location: location
-    tags: tags
-    // Name of the NSG
+    tags: tags 
     nsgName: 'nsg-${name}-${uniqueSuffix}'
   }
 }
 
-module vnet 'modules/vnet.bicep' = {
-  // Name of the deployment
+module vnet 'modules/vnet.bicep' = { 
   name: 'vnet-${name}-${uniqueSuffix}-deployment'
-  dependsOn: [
-    nsg
-  ]
   scope: resourceGroup()
   params: {
     location: location
     tags: tags
-
-    // Name of the VNet
     virtualNetworkName: 'vnet-${name}-${uniqueSuffix}'
     networkSecurityGroupId: nsg.outputs.networkSecurityGroup
     vnetAddressPrefix: vnetAddressPrefix
     trainingSubnetPrefix: trainingSubnetPrefix
     scoringSubnetPrefix: scoringSubnetPrefix
   }
+  dependsOn: [
+    nsg
+  ]
 }
 
-
-module bastion 'modules/bastion.bicep' = {
-  // Name of the deployment
-  name: 'bastion-${name}-${uniqueSuffix}-deployment'
-  dependsOn: [
-    vnet
-  ]
-  scope: resourceGroup()
-  params: {
-    location: location
-    vnetName: vnet.outputs.name
-    addressPrefix: azureBastionSubnetPrefix
-    
-  }
-}
-
-
-
-module storage 'modules/storage.bicep' = {
-  // Name of the deployment
-  name: 'st${name}${uniqueSuffix}-deployment'
-  dependsOn: [
-    vnet
-  ]
+// Dependent resources for the Azure Machine Learning workspace
+module keyvault 'modules/keyvault.bicep' = {
+  name: 'kv-${name}-${uniqueSuffix}-deployment'
   scope: resourceGroup()
   params: {
     location: location
     tags: tags
-    // Name of the storage account
+    keyvaultName: 'kv-${name}-${uniqueSuffix}'
+    keyvaultPleName: 'ple-${name}-${uniqueSuffix}-kv'
+    subnetId: '${vnet.outputs.id}/subnets/snet-training'
+    virtualNetworkId: '${vnet.outputs.id}'
+  }
+  dependsOn: [
+    vnet
+  ]
+}
+
+module storage 'modules/storage.bicep' = {
+  name: 'st${name}${uniqueSuffix}-deployment'
+  scope: resourceGroup()
+  params: {
+    location: location
+    tags: tags
     storageName: 'st${name}${uniqueSuffix}'
+    storagePleBlobName: 'ple-${name}-${uniqueSuffix}-st-blob'
+    storagePleFileName: 'ple-${name}-${uniqueSuffix}-st-file'
     storageSkuName: 'Standard_LRS'
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     virtualNetworkId: '${vnet.outputs.id}'
   }
-}
-
-// Resources
-module keyvault 'modules/keyvault.bicep' = {
-  // Name of the deployment
-  name: 'kv-${name}-${uniqueSuffix}-deployment'
   dependsOn: [
     vnet
   ]
-  scope: resourceGroup()
-  params: {
-    location: location
-    tags: tags
-    // Name of the keyvault
-    keyvaultName: 'kv-${name}-${uniqueSuffix}'
-    subnetId: '${vnet.outputs.id}/subnets/snet-training'
-    virtualNetworkId: '${vnet.outputs.id}'
-  }
 }
 
 module containerRegistry 'modules/containerregistry.bicep' = {
-  // Name of the deployment
   name: 'cr${name}${uniqueSuffix}-deployment'
-  dependsOn: [
-    vnet
-  ]
   scope: resourceGroup()
   params: {
     location: location
     tags: tags
-    // Name of the container registry
     containerRegistryName: 'cr${name}${uniqueSuffix}'
+    containerRegistryPleName: 'ple-${name}-${uniqueSuffix}-cr'
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     virtualNetworkId: '${vnet.outputs.id}'
   }
-}
-
-module applicationInsights 'modules/applicationinsights.bicep' = {
-  // Name of the deployment
-  name: 'ai-${name}-${uniqueSuffix}-deployment'
   dependsOn: [
     vnet
   ]
+}
+
+module applicationInsights 'modules/applicationinsights.bicep' = {
+  name: 'appi-${name}-${uniqueSuffix}-deployment'
   scope: resourceGroup()
   params: {
     location: location
     tags: tags
-    // Name of the Application Insights workspace
-    applicationInsightsName: 'ai-${name}-${uniqueSuffix}'
+    applicationInsightsName: 'appi-${name}-${uniqueSuffix}'
   }
+  dependsOn: [
+    vnet
+  ]
 }
 
-module amlWorkspace 'modules/machinelearning.bicep' = {
-  // Name of the deployment
+module azuremlWorkspace 'modules/machinelearning.bicep' = {
   name: 'mlw-${name}-${uniqueSuffix}-deployment'
-  dependsOn: [
-    keyvault
-    containerRegistry
-    applicationInsights
-    storage
-  ]
   scope: resourceGroup()
   params: {
     location: location
     prefix: name
     tags: tags
-    // Name of the AML workspace
     machineLearningName: 'mlw-${name}-${uniqueSuffix}'
+    machineLearningPleName: 'ple-${name}-${uniqueSuffix}-mlw'
     applicationInsightsId: applicationInsights.outputs.applicationInsightsId
     containerRegistryId: containerRegistry.outputs.containerRegistryId
     keyVaultId: keyvault.outputs.keyvaultId
@@ -186,19 +148,37 @@ module amlWorkspace 'modules/machinelearning.bicep' = {
     aksSubnetId: '${vnet.outputs.id}/subnets/snet-scoring'
     virtualNetworkId: '${vnet.outputs.id}'
   }
+  dependsOn: [
+    keyvault
+    containerRegistry
+    applicationInsights
+    storage
+  ]
 }
 
+// Optional VM and Bastion jumphost to help access the network isolated environment
 module dsvm 'modules/dsvmjumpbox.bicep' = {
-  // Name of the deployment
-  name: 'dsvm-${name}-${uniqueSuffix}-deployment'
+  name: 'vm-${name}-${uniqueSuffix}-deployment'
   scope: resourceGroup()
   params: {
     location: location
-    // Name of the DSVM
-    virtualMachineName: 'dsvm-${name}-${uniqueSuffix}'
+    virtualMachineName: 'vm-${name}-${uniqueSuffix}'
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     adminUsername: dsvmJumpboxUsername
     adminPassword: dsvmJumpboxPassword
     networkSecurityGroupId: nsg.outputs.networkSecurityGroup 
   }
+}
+
+module bastion 'modules/bastion.bicep' = {
+  name: 'bastion-${name}-${uniqueSuffix}-deployment'
+  scope: resourceGroup()
+  params: {
+    location: location
+    vnetName: vnet.outputs.name
+    addressPrefix: azureBastionSubnetPrefix
+  }
+  dependsOn: [
+    vnet
+  ]
 }

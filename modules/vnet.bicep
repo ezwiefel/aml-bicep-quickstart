@@ -1,17 +1,14 @@
-// This template is used to create a Virtual Network.
+// Creates a virtual network
 targetScope = 'resourceGroup'
 
-// Parameters
 param location string = resourceGroup().location
 param tags object = {}
 param virtualNetworkName string
 param networkSecurityGroupId string
-
 param vnetAddressPrefix string = '192.168.0.0/16'
 param trainingSubnetPrefix string = '192.168.0.0/24'
 param scoringSubnetPrefix string = '192.168.1.0/24'
 
-// Resources
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2020-07-01' = {
   name: virtualNetworkName
   location: location
@@ -73,6 +70,5 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2020-07-01' = {
   }
 }
 
-// Outputs
 output id string = virtualNetwork.id
 output name string = virtualNetwork.name

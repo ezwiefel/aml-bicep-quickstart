@@ -1,4 +1,5 @@
-// This template is used to create a Machine Learning workspace with a GPU cluster, CPU cluster, compute instance and attached private AKS cluster.
+// Creates a machine learning workspace, private endpoints and compute resources
+// Compute resources include a GPU cluster, CPU cluster, compute instance and attached private AKS cluster
 targetScope = 'resourceGroup'
 
 // Parameters
@@ -6,6 +7,7 @@ param prefix string
 param location string
 param tags object
 param machineLearningName string
+param machineLearningPleName string
 param applicationInsightsId string
 param containerRegistryId string
 param keyVaultId string
@@ -26,9 +28,6 @@ resource machineLearning 'Microsoft.MachineLearningServices/workspaces@2021-04-0
   properties: {
     allowPublicAccessWhenBehindVnet: false
     description: machineLearningName
-    encryption: {
-      status: 'Disabled'
-    }
     friendlyName: machineLearningName
     hbiWorkspace: true
     imageBuildCompute: 'cpucluster001'
@@ -52,9 +51,7 @@ module machineLearningPrivateEndpoint 'machinelearningprivatednszones.bicep' = {
     location: location
     tags: tags
     virtualNetworkId: virtualNetworkId
-    workspaceId: machineLearning.properties.workspaceId
-    workspaceArmId: machineLearning.id 
-    workspaceName: machineLearning.name
+    workspaceArmId: machineLearning.id
     subnetId: subnetId
   }
 }

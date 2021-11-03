@@ -5,6 +5,7 @@ targetScope = 'resourceGroup'
 param location string
 param tags object
 param containerRegistryName string
+param containerRegistryPleName string
 param subnetId string
 param virtualNetworkId string
 
@@ -66,7 +67,7 @@ resource containerRegistryPrivateEndpoint 'Microsoft.Network/privateEndpoints@20
     manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
       {
-        name: 'acr-pe'
+        name: containerRegistryPleName
         properties: {
           groupIds: [
             groupName

@@ -11,6 +11,9 @@ param tags object = {}
 @description('The name of the Key Vault')
 param keyvaultName string
 
+@description('The name of the Key Vault private link endpoint')
+param keyvaultPleName string
+
 @description('The Subnet ID where the Key Vault Private Link is to be created')
 param subnetId string
 
@@ -55,14 +58,14 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
 }
 
 resource keyVaultPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020-11-01' = {
-  name: 'keyvault-pe'
+  name: keyvaultPleName
   location: location
   tags: tags
   properties: {
     manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
       {
-        name: 'keyvault-pe'
+        name: keyvaultPleName
         properties: {
           groupIds: [
             privateDnsGroupName

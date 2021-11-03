@@ -1,13 +1,10 @@
-// This template is used to create Private DNS Zones, A records and VNet Links for an AML workspace.
+// Creates private endpoints and DNS zones for the azure machine learning workspace
 targetScope = 'resourceGroup'
-
-// Parameters
+ 
 param location string
 param virtualNetworkId string
 param subnetId string
-param workspaceId string
 param workspaceArmId string
-param workspaceName string
 param tags object
 
 var groupName = 'amlworkspace'

@@ -1,12 +1,11 @@
-// This template is used to create a Network Security Group with rules specified here (https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-azureml-behind-firewall?tabs=ipaddress#required-public-internet-access).
+// Creates a network security group preconfigured for use with Azure ML
+// To learn more, see https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-azureml-behind-firewall
 targetScope = 'resourceGroup'
 
-// Parameters
 param location string
 param tags object
 param nsgName string
 
-// Resources
 resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
   name: nsgName
   location: location
@@ -170,5 +169,4 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
   }
 }
 
-// Outputs
 output networkSecurityGroup string = nsg.id

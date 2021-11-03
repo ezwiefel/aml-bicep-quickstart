@@ -1,3 +1,4 @@
+// Creates an Azure Kubernetes Services and attaches it to the Azure Machine Learning workspace
 param aksClusterName string
 param location string
 param tags object
@@ -15,9 +16,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
   properties: {
     kubernetesVersion: '1.20.7'
     dnsPrefix: '${aksClusterName}-dns'
-    sku: {
-      name: 'Basic'
-    }
     agentPoolProfiles: [
       {
         name: toLower('agentpool')
@@ -63,9 +61,7 @@ resource workspaceName_computeName 'Microsoft.MachineLearningServices/workspaces
     properties: {
       aksNetworkingConfiguration:  {
         subnetId: aksSubnetId
-      } 
-      loadBalancerType: 'InternalLoadBalancer'
-      loadBalancerSubnet: 'snet-scoring'
+      }
     }
   }
 }
