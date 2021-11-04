@@ -1,26 +1,33 @@
 // This template is used to create a Container Registry with private endpoint.
 targetScope = 'resourceGroup'
 
-// Parameters
+@description('Azure region of the deployment')
 param location string
+
+@description('Tags to add to the resources')
 param tags object
+
+@description('Container registry name')
 param containerRegistryName string
+
+@description('Container registry private link endpoint name')
 param containerRegistryPleName string
+
+@description('Resource ID of the subnet')
 param subnetId string
+
+@description('Resource ID of the virtual network')
 param virtualNetworkId string
 
-// Variables
 var containerRegistryNameCleaned = replace(containerRegistryName, '-', '')
-
 var privateDnsZoneName = {
   azureusgovernment: 'privatelink.azurecr.us'
   azurechinacloud: 'privatelink.azurecr.cn'
   azurecloud: 'privatelink.azurecr.io'
-  }
+}
 
- var groupName = 'registry' 
+var groupName = 'registry' 
 
-// Resources
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2020-11-01-preview' = {
   name: containerRegistryNameCleaned
   location: location
@@ -112,8 +119,6 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
   }
 }
 
-
-
 resource acrPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
   name: '${acrPrivateDnsZone.name}/${uniqueString(containerRegistry.id)}'
   dependsOn: [
@@ -128,5 +133,4 @@ resource acrPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNet
   }
 }
 
-// Outputs
 output containerRegistryId string = containerRegistry.id

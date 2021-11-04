@@ -2,22 +2,45 @@
 // Compute resources include a GPU cluster, CPU cluster, compute instance and attached private AKS cluster
 targetScope = 'resourceGroup'
 
-// Parameters
+@description('Prefix for resource names')
 param prefix string
-param location string
-param tags object
-param machineLearningName string
-param machineLearningPleName string
-param applicationInsightsId string
-param containerRegistryId string
-param keyVaultId string
-param storageAccountId string
-param subnetId string
-param computeSubnetId string
-param aksSubnetId string
-param virtualNetworkId string
 
-// Resources
+@description('Azure region of the deployment')
+param location string
+
+@description('Tags to add to the resources')
+param tags object
+
+@description('Machine learning workspace name')
+param machineLearningName string
+
+@description('Machine learning private link endpoint name')
+param machineLearningPleName string
+
+@description('Resource ID of the application insights resource')
+param applicationInsightsId string
+
+@description('Resource ID of the container registry resource')
+param containerRegistryId string
+
+@description('Resource ID of the key vault resource')
+param keyVaultId string
+
+@description('Resource ID of the storage account resource')
+param storageAccountId string
+
+@description('Resource ID of the subnet resource')
+param subnetId string
+
+@description('Resource ID of the compute subnet')
+param computeSubnetId string
+
+@description('Resource ID of the Azure Kubernetes services resource')
+param aksSubnetId string
+
+@description('Resource ID of the virtual network')
+param virtualNetworkId string
+ 
 resource machineLearning 'Microsoft.MachineLearningServices/workspaces@2021-04-01' = {
   name: machineLearningName
   location: location
@@ -56,7 +79,6 @@ module machineLearningPrivateEndpoint 'machinelearningprivatednszones.bicep' = {
   }
 }
 
-// AML Compute - GPU cluster
 resource machineLearningGpuCluster001 'Microsoft.MachineLearningServices/workspaces/computes@2021-04-01' = {
   parent: machineLearning
   name: 'gpucluster001'
@@ -92,7 +114,6 @@ resource machineLearningGpuCluster001 'Microsoft.MachineLearningServices/workspa
   }
 }
 
-// AML Compute - CPU cluster
 resource machineLearningCpuCluster001 'Microsoft.MachineLearningServices/workspaces/computes@2021-04-01' = {
   parent: machineLearning
   name: 'cpucluster001'
@@ -128,7 +149,6 @@ resource machineLearningCpuCluster001 'Microsoft.MachineLearningServices/workspa
   }
 }
 
-// Compute Instance
 resource machineLearningComputeInstance001 'Microsoft.MachineLearningServices/workspaces/computes@2021-04-01' = {
   parent: machineLearning
   name: '${prefix}-ci001'
@@ -176,5 +196,5 @@ module machineLearningAksCompute 'privateaks.bicep' = {
     workspaceName: machineLearningName
   }
 }
-// Outputs
+
 output machineLearningId string = machineLearning.id

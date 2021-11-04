@@ -1,10 +1,19 @@
 // Creates private endpoints and DNS zones for the azure machine learning workspace
 targetScope = 'resourceGroup'
  
+@description('Azure region of the deployment')
 param location string
+
+@description('Resource ID of the virtual network resource')
 param virtualNetworkId string
+
+@description('Resource ID of the subnet resource')
 param subnetId string
+
+@description('Resource ID of the machine learning workspace')
 param workspaceArmId string
+
+@description('Tags to add to the resources')
 param tags object
 
 var groupName = 'amlworkspace'

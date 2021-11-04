@@ -1,9 +1,21 @@
 // Creates an Azure Kubernetes Services and attaches it to the Azure Machine Learning workspace
+
+@description('Name of the Azure Kubernetes Service cluster')
 param aksClusterName string
+
+@description('Azure region of the deployment')
 param location string
+
+@description('Tags to add to the resources')
 param tags object
+
+@description('Resource ID for the Azure Kubernetes Service subnet')
 param aksSubnetId string
+
+@description('Name of the Azure Machine Learning workspace')
 param workspaceName string
+
+@description('Name of the Azure Machine Learning attached compute')
 param computeName string
 
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {

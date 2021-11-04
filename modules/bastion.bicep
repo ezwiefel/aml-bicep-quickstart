@@ -1,10 +1,9 @@
-// Deploy an Azure Bastion Subnet and Host is a given VNet
-
+// Creates an Azure Bastion Subnet and host in the specified virtual network
 
 @description('The Azure region where the Bastion should be deployed')
 param location string = resourceGroup().location
 
-@description('')
+@description('Virtual network name')
 param vnetName string
 
 @description('The address prefix to use for the Bastion subnet')

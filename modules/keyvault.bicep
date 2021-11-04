@@ -1,7 +1,6 @@
 // This template is used to create a KeyVault with a private endpoint.
 targetScope = 'resourceGroup'
 
-// Parameters
 @description('The Azure Region to deploy the resrouce group into')
 param location string = resourceGroup().location
 
@@ -19,8 +18,6 @@ param subnetId string
 
 @description('The VNet ID where the Key Vault Private Link is to be created')
 param virtualNetworkId string
-
-// Resources
 
 var privateDnsZoneName =  {
   azureusgovernment: 'privatelink.vaultcore.usgovcloudapi.net'
@@ -122,5 +119,4 @@ resource keyVaultPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtu
   }
 }
 
-// Outputs
 output keyvaultId string = keyVault.id

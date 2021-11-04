@@ -1,12 +1,21 @@
-// This template is used to create a DSVM jump box.
-
+// Creates a Data Science Virtual Machine jumpbox.
+@description('Azure region of the deployment')
 param location string = resourceGroup().location
+
+@description('Resource ID of the subnet')
 param subnetId string
+
+@description('Network Security Group Resource ID')
 param networkSecurityGroupId string
+
+@description('Virtual machine name')
 param virtualMachineName string
+
+@description('Virtual machine admin username')
 param adminUsername string = 'azureuser'
 
 @secure()
+@description('Virtual machine admin password')
 param adminPassword string
 
 var aadLoginExtensionName = 'AADLoginForWindows'

@@ -1,12 +1,25 @@
 // Creates a storage account, private endpoints and DNS zones
 targetScope = 'resourceGroup'
 
+@description('Azure region of the deployment')
 param location string
+
+@description('Tags to add to the resources')
 param tags object
+
+@description('Name of the storage account')
 param storageName string
+
+@description('Name of the storage blob private link endpoint')
 param storagePleBlobName string
+
+@description('Name of the storage file private link endpoint')
 param storagePleFileName string
+
+@description('Resource ID of the subnet')
 param subnetId string
+
+@description('Resource ID of the virtual network')
 param virtualNetworkId string
 
 @allowed([

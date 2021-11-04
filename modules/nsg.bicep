@@ -2,8 +2,13 @@
 // To learn more, see https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-azureml-behind-firewall
 targetScope = 'resourceGroup'
 
+@description('Azure region of the deployment')
 param location string
+
+@description('Tags to add to the resources')
 param tags object
+
+@description('Name of the network security group')
 param nsgName string
 
 resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
