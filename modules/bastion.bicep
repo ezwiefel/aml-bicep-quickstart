@@ -1,5 +1,4 @@
 // Creates an Azure Bastion Subnet and host in the specified virtual network
-
 @description('The Azure region where the Bastion should be deployed')
 param location string = resourceGroup().location
 
