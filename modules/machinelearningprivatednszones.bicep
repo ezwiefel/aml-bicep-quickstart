@@ -1,6 +1,6 @@
 // Creates private endpoints and DNS zones for the azure machine learning workspace
 targetScope = 'resourceGroup'
- 
+
 @description('Azure region of the deployment')
 param location string
 

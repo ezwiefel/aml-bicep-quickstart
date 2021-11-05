@@ -1,5 +1,4 @@
 // Creates an Azure Kubernetes Services and attaches it to the Azure Machine Learning workspace
-
 @description('Name of the Azure Kubernetes Service cluster')
 param aksClusterName string
 

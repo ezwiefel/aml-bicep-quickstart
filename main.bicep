@@ -1,4 +1,4 @@
-// Use this main template file to set up Azure Machine Learning end-to-end in a moderately secure set up
+// Execute this main file to configure Azure Machine Learning end-to-end in a moderately secure set up
 targetScope = 'resourceGroup'
 
 // Parameters
@@ -25,11 +25,11 @@ param scoringSubnetPrefix string = '192.168.1.0/24'
 @description('Bastion subnet address prefix')
 param azureBastionSubnetPrefix string = '192.168.250.0/27'
 
-@description('Jumbox virtual machine username')
+@description('Jumpbox virtual machine username')
 param dsvmJumpboxUsername string
 
 @secure()
-@description('Jumbox virtual machine password')
+@description('Jumpbox virtual machine password')
 param dsvmJumpboxPassword string
 
 // Variables
@@ -134,15 +134,21 @@ module azuremlWorkspace 'modules/machinelearning.bicep' = {
   name: 'mlw-${name}-${uniqueSuffix}-deployment'
   scope: resourceGroup()
   params: {
+    // workspace organization
+    machineLearningName: 'mlw-${name}-${uniqueSuffix}'
+    machineLearningFriendlyName: 'Private link endpoint sample workspace'
+    machineLearningDescription: 'This is an example workspace having a private link endpoint.'
     location: location
     prefix: name
     tags: tags
-    machineLearningName: 'mlw-${name}-${uniqueSuffix}'
-    machineLearningPleName: 'ple-${name}-${uniqueSuffix}-mlw'
+
+    // dependent resources
     applicationInsightsId: applicationInsights.outputs.applicationInsightsId
     containerRegistryId: containerRegistry.outputs.containerRegistryId
     keyVaultId: keyvault.outputs.keyvaultId
     storageAccountId: storage.outputs.storageId
+
+    // networking
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     computeSubnetId: '${vnet.outputs.id}/subnets/snet-training'
     aksSubnetId: '${vnet.outputs.id}/subnets/snet-scoring'

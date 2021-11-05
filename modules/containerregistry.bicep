@@ -1,4 +1,4 @@
-// This template is used to create a Container Registry with private endpoint.
+// Creates an Azure Container Registry with Azure Private Link endpoint
 targetScope = 'resourceGroup'
 
 @description('Azure region of the deployment')

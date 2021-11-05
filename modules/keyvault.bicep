@@ -1,4 +1,4 @@
-// This template is used to create a KeyVault with a private endpoint.
+// Creates a KeyVault with Private Link Endpoint
 targetScope = 'resourceGroup'
 
 @description('The Azure Region to deploy the resrouce group into')

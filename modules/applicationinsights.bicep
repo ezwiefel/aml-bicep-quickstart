@@ -1,4 +1,4 @@
-// This template is used to create Application Insights.
+// Creates an Application Insights instance as dependency for Azure ML
 targetScope = 'resourceGroup'
 
 @description('Azure region of the deployment')
