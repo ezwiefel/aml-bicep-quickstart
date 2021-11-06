@@ -60,3 +60,5 @@ resource bastionHost 'Microsoft.Network/bastionHosts@2019-04-01' = {
     ]
   }
 }
+
+output bastionId string = bastionHost.id

@@ -106,3 +106,5 @@ resource virtualMachineName_aadLoginExtensionName 'Microsoft.Compute/virtualMach
     autoUpgradeMinorVersion: true
   }
 }
+
+output dsvmId string = virtualMachine.id
