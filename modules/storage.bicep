@@ -35,11 +35,13 @@ param virtualNetworkId string
 param storageSkuName string = 'Standard_LRS'
 
 var storageNameCleaned = replace(storageName, '-', '')
+
 var blobPrivateDnsZoneName =  {
   azureusgovernment: 'privatelink.blob.core.usgovcloudapi.net'
   azurechinacloud: 'privatelink.blob.core.chinacloudapi.cn'
   azurecloud: 'privatelink.blob.core.windows.net'
 }
+
 var filePrivateDnsZoneName =  {
   azureusgovernment: 'privatelink.file.core.usgovcloudapi.net'
   azurechinacloud: 'privatelink.file.core.chinacloudapi.cn'

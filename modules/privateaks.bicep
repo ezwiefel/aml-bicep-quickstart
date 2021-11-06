@@ -42,7 +42,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
           '1'
           '2'
           '3'
-      ]
+        ]
       }
     ]
     enableRBAC: true
@@ -59,7 +59,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
   }
 }
 
-//Output
 output aksResourceId string = aksCluster.id
 
 resource workspaceName_computeName 'Microsoft.MachineLearningServices/workspaces/computes@2021-01-01' = {
@@ -68,7 +67,6 @@ resource workspaceName_computeName 'Microsoft.MachineLearningServices/workspaces
   properties: {
     computeType: 'AKS'
     resourceId: aksCluster.id
-    // Not tested with this subnet config
     properties: {
       aksNetworkingConfiguration:  {
         subnetId: aksSubnetId

@@ -57,19 +57,16 @@ resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020
 
 resource amlPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   name: privateDnsZoneName[toLower(environment().name)]
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
   location: 'global'
   properties: {
   }
+  dependsOn: [
+    machineLearningPrivateEndpoint
+  ]
 }
 
 resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
   name: '${amlPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
-  dependsOn: [
-    amlPrivateDnsZone
-  ]
   location: 'global'
   properties: {
     registrationEnabled: false
@@ -77,24 +74,24 @@ resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNet
       id: virtualNetworkId
     }
   }
+  dependsOn: [
+    amlPrivateDnsZone
+  ]
 }
 
 // Notebook
 resource notebookPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   name: privateAznbDnsZoneName[toLower(environment().name)]
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
   location: 'global'
   properties: {
   }
+  dependsOn: [
+    machineLearningPrivateEndpoint
+  ]
 }
 
 resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
   name: '${notebookPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
-  dependsOn: [
-    notebookPrivateDnsZone
-  ]
   location: 'global'
   properties: {
     registrationEnabled: false
@@ -102,14 +99,13 @@ resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtu
       id: virtualNetworkId
     }
   }
+  dependsOn: [
+    notebookPrivateDnsZone
+  ]
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
   name: '${machineLearningPrivateEndpoint.name}/amlworkspace-PrivateDnsZoneGroup'
-  dependsOn: [
-    machineLearningPrivateEndpoint
-    notebookPrivateDnsZone
-  ]
   properties:{
     privateDnsZoneConfigs: [
       {
@@ -126,4 +122,8 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       }
     ]
   }
+  dependsOn: [
+    machineLearningPrivateEndpoint
+    notebookPrivateDnsZone
+  ]
 }

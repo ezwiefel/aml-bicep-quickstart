@@ -42,7 +42,7 @@ resource bastionHost 'Microsoft.Network/bastionHosts@2019-04-01' = {
   dependsOn: [
     bastionSubnet
     publicIpAddressForBastion
-    ]
+  ]
   location: location
   properties: {
     ipConfigurations: [

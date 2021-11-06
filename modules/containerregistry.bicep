@@ -62,7 +62,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2020-11-01-pr
       }
     }
     publicNetworkAccess: 'Disabled'
-    // zoneRedundancy: 'Enabled'  // Uncomment to allow zone redundancy for your Container Registry
+    // zoneRedundancy: 'Enabled'
   }
 }
 
@@ -92,21 +92,16 @@ resource containerRegistryPrivateEndpoint 'Microsoft.Network/privateEndpoints@20
 
 resource acrPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
   name: privateDnsZoneName[toLower(environment().name)]
-
-  dependsOn: [
-    containerRegistryPrivateEndpoint
-  ]
   location: 'global'
   properties: {
   }
+  dependsOn: [
+    containerRegistryPrivateEndpoint
+  ]
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
   name: '${containerRegistryPrivateEndpoint.name}/${groupName}-PrivateDnsZoneGroup'
-  dependsOn: [
-    containerRegistryPrivateEndpoint
-    acrPrivateDnsZone
-  ]
   properties:{
     privateDnsZoneConfigs: [
       {
@@ -117,13 +112,14 @@ resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGr
       }
     ]
   }
+  dependsOn: [
+    containerRegistryPrivateEndpoint
+    acrPrivateDnsZone
+  ]
 }
 
 resource acrPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
   name: '${acrPrivateDnsZone.name}/${uniqueString(containerRegistry.id)}'
-  dependsOn: [
-    acrPrivateDnsZone
-  ]
   location: 'global'
   properties: {
     registrationEnabled: false
@@ -131,6 +127,9 @@ resource acrPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNet
       id: virtualNetworkId
     }
   }
+  dependsOn: [
+    acrPrivateDnsZone
+  ]
 }
 
 output containerRegistryId string = containerRegistry.id
