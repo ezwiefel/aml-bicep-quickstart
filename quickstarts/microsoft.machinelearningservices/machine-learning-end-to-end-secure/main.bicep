@@ -25,11 +25,14 @@ param scoringSubnetPrefix string = '192.168.1.0/24'
 @description('Bastion subnet address prefix')
 param azureBastionSubnetPrefix string = '192.168.250.0/27'
 
-@description('Jumpbox virtual machine username')
+@description('Deploy a Bastion jumphost to access the network-isolated environment?')
+param deployJumphost bool
+
+@description('Jumphost virtual machine username')
 param dsvmJumpboxUsername string
 
 @secure()
-@description('Jumpbox virtual machine password')
+@description('Jumphost virtual machine password')
 param dsvmJumpboxPassword string
 
 // Variables
@@ -160,7 +163,7 @@ module azuremlWorkspace 'modules/machinelearning.bicep' = {
 }
 
 // Optional VM and Bastion jumphost to help access the network isolated environment
-module dsvm 'modules/dsvmjumpbox.bicep' = {
+module dsvm 'modules/dsvmjumpbox.bicep' = if (deployJumphost) {
   name: 'vm-${name}-${uniqueSuffix}-deployment'
   params: {
     location: location
@@ -172,7 +175,7 @@ module dsvm 'modules/dsvmjumpbox.bicep' = {
   }
 }
 
-module bastion 'modules/bastion.bicep' = {
+module bastion 'modules/bastion.bicep' = if (deployJumphost) {
   name: 'bas-${name}-${uniqueSuffix}-deployment'
   params: {
     bastionHostName: 'bas-${name}-${uniqueSuffix}'
