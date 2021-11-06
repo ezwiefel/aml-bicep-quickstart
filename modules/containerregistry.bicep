@@ -67,7 +67,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2020-11-01-pr
 }
 
 resource containerRegistryPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020-11-01' = {
-  name: 'acr-pe'
+  name: containerRegistryPleName
   location: location
   tags: tags
   properties: {

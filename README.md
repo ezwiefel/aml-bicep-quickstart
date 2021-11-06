@@ -56,8 +56,7 @@ First, create an Azure resource group:
 Then deploy the 'main' Bicep template file:
 `az deployment group create --resource-group <resource-group-name> --template-file .\main.bicep`
 
-After succesful deployment, there are several options to connect to your private link endpoint workspace.
-To learn more about these options, see [Securely connect to your workspace](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-secure-workspace-vnet?tabs=pe#securely-connect-to-your-workspace).
+After succesful deployment, log on to the Data Science Virtual Machine Jumpbox machine that you just deployed to access your workspace from the virtual network. To learn more, see [Securely connect to your workspace](https://docs.microsoft.com/en-us/azure/machine-learning/how-to-secure-workspace-vnet?tabs=pe#securely-connect-to-your-workspace).
 
 ## Learn more
 

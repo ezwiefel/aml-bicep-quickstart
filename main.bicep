@@ -41,7 +41,6 @@ var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 4)
 // Virtual network and network security group
 module nsg 'modules/nsg.bicep' = { 
   name: 'nsg-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
     tags: tags 
@@ -51,15 +50,14 @@ module nsg 'modules/nsg.bicep' = {
 
 module vnet 'modules/vnet.bicep' = { 
   name: 'vnet-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
-    tags: tags
     virtualNetworkName: 'vnet-${name}-${uniqueSuffix}'
     networkSecurityGroupId: nsg.outputs.networkSecurityGroup
     vnetAddressPrefix: vnetAddressPrefix
     trainingSubnetPrefix: trainingSubnetPrefix
     scoringSubnetPrefix: scoringSubnetPrefix
+    tags: tags
   }
   dependsOn: [
     nsg
@@ -69,14 +67,13 @@ module vnet 'modules/vnet.bicep' = {
 // Dependent resources for the Azure Machine Learning workspace
 module keyvault 'modules/keyvault.bicep' = {
   name: 'kv-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
-    tags: tags
     keyvaultName: 'kv-${name}-${uniqueSuffix}'
     keyvaultPleName: 'ple-${name}-${uniqueSuffix}-kv'
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     virtualNetworkId: '${vnet.outputs.id}'
+    tags: tags
   }
   dependsOn: [
     vnet
@@ -85,16 +82,15 @@ module keyvault 'modules/keyvault.bicep' = {
 
 module storage 'modules/storage.bicep' = {
   name: 'st${name}${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
-    tags: tags
     storageName: 'st${name}${uniqueSuffix}'
     storagePleBlobName: 'ple-${name}-${uniqueSuffix}-st-blob'
     storagePleFileName: 'ple-${name}-${uniqueSuffix}-st-file'
     storageSkuName: 'Standard_LRS'
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     virtualNetworkId: '${vnet.outputs.id}'
+    tags: tags
   }
   dependsOn: [
     vnet
@@ -103,14 +99,13 @@ module storage 'modules/storage.bicep' = {
 
 module containerRegistry 'modules/containerregistry.bicep' = {
   name: 'cr${name}${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
-    tags: tags
     containerRegistryName: 'cr${name}${uniqueSuffix}'
     containerRegistryPleName: 'ple-${name}-${uniqueSuffix}-cr'
     subnetId: '${vnet.outputs.id}/subnets/snet-training'
     virtualNetworkId: '${vnet.outputs.id}'
+    tags: tags
   }
   dependsOn: [
     vnet
@@ -119,11 +114,10 @@ module containerRegistry 'modules/containerregistry.bicep' = {
 
 module applicationInsights 'modules/applicationinsights.bicep' = {
   name: 'appi-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
-    tags: tags
     applicationInsightsName: 'appi-${name}-${uniqueSuffix}'
+    tags: tags
   }
   dependsOn: [
     vnet
@@ -132,7 +126,6 @@ module applicationInsights 'modules/applicationinsights.bicep' = {
 
 module azuremlWorkspace 'modules/machinelearning.bicep' = {
   name: 'mlw-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     // workspace organization
     machineLearningName: 'mlw-${name}-${uniqueSuffix}'
@@ -153,6 +146,10 @@ module azuremlWorkspace 'modules/machinelearning.bicep' = {
     computeSubnetId: '${vnet.outputs.id}/subnets/snet-training'
     aksSubnetId: '${vnet.outputs.id}/subnets/snet-scoring'
     virtualNetworkId: '${vnet.outputs.id}'
+    machineLearningPleName: 'ple-${name}-${uniqueSuffix}-mlw'
+
+    // attached compute
+    mlAksName: 'aks-${name}-${uniqueSuffix}'
   }
   dependsOn: [
     keyvault
@@ -165,7 +162,6 @@ module azuremlWorkspace 'modules/machinelearning.bicep' = {
 // Optional VM and Bastion jumphost to help access the network isolated environment
 module dsvm 'modules/dsvmjumpbox.bicep' = {
   name: 'vm-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
   params: {
     location: location
     virtualMachineName: 'vm-${name}-${uniqueSuffix}'
@@ -177,9 +173,9 @@ module dsvm 'modules/dsvmjumpbox.bicep' = {
 }
 
 module bastion 'modules/bastion.bicep' = {
-  name: 'bastion-${name}-${uniqueSuffix}-deployment'
-  scope: resourceGroup()
+  name: 'bas-${name}-${uniqueSuffix}-deployment'
   params: {
+    bastionHostName: 'bas-${name}-${uniqueSuffix}'
     location: location
     vnetName: vnet.outputs.name
     addressPrefix: azureBastionSubnetPrefix

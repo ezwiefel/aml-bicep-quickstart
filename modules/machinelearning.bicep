@@ -20,6 +20,9 @@ param machineLearningFriendlyName string = machineLearningName
 @description('Machine learning workspace description')
 param machineLearningDescription string
 
+@description('Name of the Azure Kubernetes services resource to create and attached to the machine learning workspace')
+param mlAksName string
+
 @description('Resource ID of the application insights resource')
 param applicationInsightsId string
 
@@ -43,6 +46,9 @@ param aksSubnetId string
 
 @description('Resource ID of the virtual network')
 param virtualNetworkId string
+
+@description('Machine learning workspace private link endpoint name')
+param machineLearningPleName string
  
 resource machineLearning 'Microsoft.MachineLearningServices/workspaces@2021-04-01' = {
   name: machineLearningName
@@ -68,8 +74,8 @@ resource machineLearning 'Microsoft.MachineLearningServices/workspaces@2021-04-0
   }
 }
 
-module machineLearningPrivateEndpoint 'machinelearningprivatednszones.bicep' = {
-  name: 'machineLearningPrivateDnsZones001'
+module machineLearningPrivateEndpoint 'machinelearningnetworking.bicep' = {
+  name: 'machineLearningNetworking'
   scope: resourceGroup()
   params: {
     location: location
@@ -77,120 +83,21 @@ module machineLearningPrivateEndpoint 'machinelearningprivatednszones.bicep' = {
     virtualNetworkId: virtualNetworkId
     workspaceArmId: machineLearning.id
     subnetId: subnetId
+    machineLearningPleName: machineLearningPleName
   }
 }
 
-resource machineLearningCpuCluster001 'Microsoft.MachineLearningServices/workspaces/computes@2021-04-01' = {
-  parent: machineLearning
-  name: 'cpucluster001'
-  location: location
-  tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    computeType: 'AmlCompute'
-    computeLocation: location
-    description: 'Machine Learning cluster 001'
-    disableLocalAuth: true
-    properties: {
-      vmPriority: 'Dedicated'
-      vmSize: 'Standard_Ds3_v2'
-      enableNodePublicIp: false
-      isolatedNetwork: false
-      osType: 'Linux'
-      remoteLoginPortPublicAccess: 'Disabled'
-      scaleSettings: {
-        minNodeCount: 0
-        maxNodeCount: 8
-        nodeIdleTimeBeforeScaleDown: 'PT120S'
-      }
-      subnet: {
-        id: computeSubnetId
-      }
-    }
-  }
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
-}
-
-resource machineLearningGpuCluster001 'Microsoft.MachineLearningServices/workspaces/computes@2021-04-01' = {
-  parent: machineLearning
-  name: 'gpucluster001'
-  location: location
-  tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    computeType: 'AmlCompute'
-    computeLocation: location
-    description: 'Machine Learning cluster 001'
-    disableLocalAuth: true
-    properties: {
-      enableNodePublicIp: false
-      isolatedNetwork: false
-      osType: 'Linux'
-      remoteLoginPortPublicAccess: 'Disabled'
-      scaleSettings: {
-        minNodeCount: 0
-        maxNodeCount: 8
-        nodeIdleTimeBeforeScaleDown: 'PT120S'
-      }
-      subnet: {
-        id: computeSubnetId
-      }
-      vmPriority: 'Dedicated'
-      vmSize: 'Standard_NC6'
-    }
-  }
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
-}
-
-resource machineLearningComputeInstance001 'Microsoft.MachineLearningServices/workspaces/computes@2021-04-01' = {
-  parent: machineLearning
-  name: '${prefix}-ci001'
-  location: location
-  tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    computeType: 'ComputeInstance'
-    computeLocation: location
-    description: 'Machine Learning compute instance 001'
-    disableLocalAuth: true
-    properties: {
-      applicationSharingPolicy: 'Personal'
-      computeInstanceAuthorizationType: 'personal'
-      sshSettings: {
-        sshPublicAccess: 'Disabled'
-        adminPublicKey: ''
-      }
-      subnet: {
-        id: computeSubnetId
-      }
-      vmSize: 'Standard_DS3_v2'
-    }
-  }
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
-}
-
-module machineLearningAksCompute 'privateaks.bicep' = {
-  name: 'mlprivateaks001'
+module machineLearningCompute 'machinelearningcompute.bicep' = {
+  name: 'machineLearningComputes'
   scope: resourceGroup()
   params: {
+    machineLearning: machineLearningName
     location: location
-    tags: tags
-    aksClusterName: 'privateaks001'
-    computeName: 'aks001'
+    computeSubnetId:computeSubnetId
+    aksName: mlAksName
     aksSubnetId: aksSubnetId
-    workspaceName: machineLearningName
+    prefix: prefix
+    tags: tags
   }
   dependsOn: [
     machineLearning

@@ -4,6 +4,9 @@ targetScope = 'resourceGroup'
 @description('Azure region of the deployment')
 param location string
 
+@description('Machine learning workspace private link endpoint name')
+param machineLearningPleName string
+
 @description('Resource ID of the virtual network resource')
 param virtualNetworkId string
 
@@ -15,8 +18,6 @@ param workspaceArmId string
 
 @description('Tags to add to the resources')
 param tags object
-
-var groupName = 'amlworkspace'
 
 var privateDnsZoneName =  {
   azureusgovernment: 'privatelink.api.ml.azure.us'
@@ -31,17 +32,17 @@ var privateAznbDnsZoneName = {
 }
 
 resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020-11-01' = {
-  name: 'workspace-pe'
+  name: machineLearningPleName
   location: location
   tags: tags
   properties: {
     manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
       {
-        name: 'workspace-pe'
+        name: machineLearningPleName
         properties: {
           groupIds: [
-            groupName
+            'amlworkspace'
           ]
           privateLinkServiceId: workspaceArmId
           requestMessage: ''
@@ -104,7 +105,7 @@ resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtu
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
-  name: '${machineLearningPrivateEndpoint.name}/${groupName}-PrivateDnsZoneGroup'
+  name: '${machineLearningPrivateEndpoint.name}/amlworkspace-PrivateDnsZoneGroup'
   dependsOn: [
     machineLearningPrivateEndpoint
     notebookPrivateDnsZone
