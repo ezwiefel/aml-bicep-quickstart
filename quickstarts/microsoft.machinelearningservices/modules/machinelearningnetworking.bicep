@@ -36,7 +36,6 @@ resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020
   location: location
   tags: tags
   properties: {
-    manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
       {
         name: machineLearningPleName
@@ -45,7 +44,6 @@ resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020
             'amlworkspace'
           ]
           privateLinkServiceId: workspaceArmId
-          requestMessage: ''
         }
       }
     ]
@@ -55,17 +53,15 @@ resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020
   }
 }
 
-resource amlPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
+resource amlPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-01-01' = {
   name: privateDnsZoneName[toLower(environment().name)]
   location: 'global'
-  properties: {
-  }
   dependsOn: [
     machineLearningPrivateEndpoint
   ]
 }
 
-resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
+resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-01-01' = {
   name: '${amlPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
   location: 'global'
   properties: {
@@ -80,17 +76,15 @@ resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNet
 }
 
 // Notebook
-resource notebookPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
+resource notebookPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-01-01' = {
   name: privateAznbDnsZoneName[toLower(environment().name)]
   location: 'global'
-  properties: {
-  }
   dependsOn: [
     machineLearningPrivateEndpoint
   ]
 }
 
-resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
+resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-01-01' = {
   name: '${notebookPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
   location: 'global'
   properties: {

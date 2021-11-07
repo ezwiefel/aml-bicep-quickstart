@@ -2,13 +2,13 @@
 targetScope = 'resourceGroup'
 
 // Parameters
-@description('Azure region used for the deployment of all resources.')
-param location string = resourceGroup().location
-
 @minLength(2)
 @maxLength(10)
 @description('Prefix for all resource names.')
 param prefix string
+
+@description('Azure region used for the deployment of all resources.')
+param location string = resourceGroup().location
 
 @description('Set of tags to apply to all resources.')
 param tags object = {}
@@ -32,6 +32,7 @@ param deployJumphost bool
 param dsvmJumpboxUsername string
 
 @secure()
+@minLength(8)
 @description('Jumphost virtual machine password')
 param dsvmJumpboxPassword string
 

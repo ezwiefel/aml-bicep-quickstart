@@ -11,16 +11,20 @@ param networkSecurityGroupId string
 @description('Virtual machine name')
 param virtualMachineName string
 
+@description('Virtual machine size')
+param vmSize string = 'Standard_DS3_v2'
+
 @description('Virtual machine admin username')
 param adminUsername string = 'azureuser'
 
 @secure()
+@minLength(8)
 @description('Virtual machine admin password')
 param adminPassword string
 
 var aadLoginExtensionName = 'AADLoginForWindows'
 
-resource networkInterface 'Microsoft.Network/networkInterfaces@2018-10-01' = {
+resource networkInterface 'Microsoft.Network/networkInterfaces@2021-03-01' = {
   name: '${virtualMachineName}-nic'
   location: location
   properties: {
@@ -49,7 +53,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   location: location
   properties: {
     hardwareProfile: {
-      vmSize: 'Standard_DS3_v2'
+      vmSize: vmSize
     }
     storageProfile: {
       osDisk: {
@@ -96,7 +100,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   }
 }
 
-resource virtualMachineName_aadLoginExtensionName 'Microsoft.Compute/virtualMachines/extensions@2018-10-01' = {
+resource virtualMachineName_aadLoginExtensionName 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
   name: '${virtualMachine.name}/${aadLoginExtensionName}'
   location: location
   properties: {
