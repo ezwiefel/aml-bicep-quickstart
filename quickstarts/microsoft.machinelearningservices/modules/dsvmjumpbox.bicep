@@ -15,7 +15,7 @@ param virtualMachineName string
 param vmSize string = 'Standard_DS3_v2'
 
 @description('Virtual machine admin username')
-param adminUsername string = 'azureuser'
+param adminUsername string
 
 @secure()
 @minLength(8)
