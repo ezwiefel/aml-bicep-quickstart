@@ -20,9 +20,6 @@ param computeName string
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
   name: aksClusterName
   location: location
-  identity: {
-    type: 'SystemAssigned'
-  }
   tags: tags
   properties: {
     kubernetesVersion: '1.20.7'

@@ -36,20 +36,6 @@ This reference implementation includes the Workspace, a CPU compute cluster, a G
 | `Microsoft.Compute/virtualMachines` | A Data Science Virtual Machine `jumpbox` to access the workspace over the private link endpoint |
 | `Microsoft.Network/virtualNetworks` | A virtual network to deploy all resources in |
 
-## Variables
-
-| Name | Description | Default |
-|-|-|-|
-| location | Specifies the Azure region for all resources | resourceGroup().location |
-| prefix | Specifies the prefix for all resources created in this deployment | - |
-| tags | Any tags you want to apply to all resources | {} |
-| vnetAddressPrefix | Specifies the address prefix of the virtual network. | '192.168.0.0/16' |
-| trainingSubnetPrefix | Specifies the address prefix of the training subnet. | '192.168.0.0/24' |
-| scoringSubnetPrefix | Specifies the address prefix of the scoring subnet. | '192.168.1.0/24' |
-| azureBastionSubnetPrefix | Specifies the address prefix of the azure bastion subnet. | '192.168.250.0/27' |
-| dsvmJumpboxUsername | Admin username for the Data Science Virtual Machine (jumpbox) | - |
-| dsvmJumpboxPassword | Admin password for the Data Science Virtual Machine (jumpbox) | - |
-
 ## Usage
 
 First, create an Azure resource group:

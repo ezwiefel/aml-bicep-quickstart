@@ -47,9 +47,6 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2021-03-01' = {
 
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   name: virtualMachineName
-  dependsOn: [
-    networkInterface
-  ]
   location: location
   properties: {
     hardwareProfile: {
