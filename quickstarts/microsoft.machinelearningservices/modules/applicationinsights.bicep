@@ -1,15 +1,14 @@
-// This template is used to create Application Insights.
-targetScope = 'resourceGroup'
-
-// Parameters
+// Creates an Application Insights instance as dependency for Azure ML
+@description('Azure region of the deployment')
 param location string = resourceGroup().location
+
+@description('Tags to add to the resources')
 param tags object = {}
+
+@description('Application Insights resource name')
 param applicationInsightsName string
 
-// Variables
-
-// Resources
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: applicationInsightsName
   location: location
   tags: tags
@@ -28,5 +27,4 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02-preview' 
   }
 }
 
-// Outputs
 output applicationInsightsId string = applicationInsights.id

@@ -1,16 +1,21 @@
-// This template is used to create Private DNS Zones, A records and VNet Links for an AML workspace.
-targetScope = 'resourceGroup'
-
-// Parameters
+// Creates private endpoints and DNS zones for the azure machine learning workspace
+@description('Azure region of the deployment')
 param location string
-param virtualNetworkId string
-param subnetId string
-param workspaceId string
-param workspaceArmId string
-param workspaceName string
-param tags object
 
-var groupName = 'amlworkspace'
+@description('Machine learning workspace private link endpoint name')
+param machineLearningPleName string
+
+@description('Resource ID of the virtual network resource')
+param virtualNetworkId string
+
+@description('Resource ID of the subnet resource')
+param subnetId string
+
+@description('Resource ID of the machine learning workspace')
+param workspaceArmId string
+
+@description('Tags to add to the resources')
+param tags object
 
 var privateDnsZoneName =  {
   azureusgovernment: 'privatelink.api.ml.azure.us'
@@ -25,20 +30,18 @@ var privateAznbDnsZoneName = {
 }
 
 resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020-11-01' = {
-  name: 'workspace-pe'
+  name: machineLearningPleName
   location: location
   tags: tags
   properties: {
-    manualPrivateLinkServiceConnections: []
     privateLinkServiceConnections: [
       {
-        name: 'workspace-pe'
+        name: machineLearningPleName
         properties: {
           groupIds: [
-            groupName
+            'amlworkspace'
           ]
           privateLinkServiceId: workspaceArmId
-          requestMessage: ''
         }
       }
     ]
@@ -48,21 +51,13 @@ resource machineLearningPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020
   }
 }
 
-resource amlPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
+resource amlPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-01-01' = {
   name: privateDnsZoneName[toLower(environment().name)]
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
   location: 'global'
-  properties: {
-  }
 }
 
-resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
+resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-01-01' = {
   name: '${amlPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
-  dependsOn: [
-    amlPrivateDnsZone
-  ]
   location: 'global'
   properties: {
     registrationEnabled: false
@@ -73,21 +68,13 @@ resource amlPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNet
 }
 
 // Notebook
-resource notebookPrivateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
+resource notebookPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-01-01' = {
   name: privateAznbDnsZoneName[toLower(environment().name)]
-  dependsOn: [
-    machineLearningPrivateEndpoint
-  ]
   location: 'global'
-  properties: {
-  }
 }
 
-resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
+resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-01-01' = {
   name: '${notebookPrivateDnsZone.name}/${uniqueString(workspaceArmId)}'
-  dependsOn: [
-    notebookPrivateDnsZone
-  ]
   location: 'global'
   properties: {
     registrationEnabled: false
@@ -98,11 +85,7 @@ resource notebookPrivateDnsZoneVnetLink 'Microsoft.Network/privateDnsZones/virtu
 }
 
 resource privateEndpointDns 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2020-06-01' = {
-  name: '${machineLearningPrivateEndpoint.name}/${groupName}-PrivateDnsZoneGroup'
-  dependsOn: [
-    machineLearningPrivateEndpoint
-    notebookPrivateDnsZone
-  ]
+  name: '${machineLearningPrivateEndpoint.name}/amlworkspace-PrivateDnsZoneGroup'
   properties:{
     privateDnsZoneConfigs: [
       {

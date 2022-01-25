@@ -1,12 +1,14 @@
-// This template is used to create a Network Security Group with rules specified here (https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-azureml-behind-firewall?tabs=ipaddress#required-public-internet-access).
-targetScope = 'resourceGroup'
-
-// Parameters
+// Creates a network security group preconfigured for use with Azure ML
+// To learn more, see https://docs.microsoft.com/en-us/azure/machine-learning/how-to-access-azureml-behind-firewall
+@description('Azure region of the deployment')
 param location string
+
+@description('Tags to add to the resources')
 param tags object
+
+@description('Name of the network security group')
 param nsgName string
 
-// Resources
 resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
   name: nsgName
   location: location
@@ -24,10 +26,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 120
           direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -41,10 +39,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 130
           direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -58,10 +52,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 140
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -75,10 +65,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 150
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -92,10 +78,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 160
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -109,10 +91,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 170
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -126,10 +104,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 180
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -143,10 +117,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 190
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
       {
@@ -160,15 +130,10 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
           access: 'Allow'
           priority: 200
           direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
         }
       }
     ]
   }
 }
 
-// Outputs
 output networkSecurityGroup string = nsg.id

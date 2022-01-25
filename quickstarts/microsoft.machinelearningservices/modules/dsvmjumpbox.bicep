@@ -1,17 +1,30 @@
-// This template is used to create a DSVM jump box.
-
+// Creates a Data Science Virtual Machine jumpbox.
+@description('Azure region of the deployment')
 param location string = resourceGroup().location
+
+@description('Resource ID of the subnet')
 param subnetId string
+
+@description('Network Security Group Resource ID')
 param networkSecurityGroupId string
+
+@description('Virtual machine name')
 param virtualMachineName string
-param adminUsername string = 'azureuser'
+
+@description('Virtual machine size')
+param vmSize string = 'Standard_DS3_v2'
+
+@description('Virtual machine admin username')
+param adminUsername string
 
 @secure()
+@minLength(8)
+@description('Virtual machine admin password')
 param adminPassword string
 
 var aadLoginExtensionName = 'AADLoginForWindows'
 
-resource networkInterface 'Microsoft.Network/networkInterfaces@2018-10-01' = {
+resource networkInterface 'Microsoft.Network/networkInterfaces@2021-03-01' = {
   name: '${virtualMachineName}-nic'
   location: location
   properties: {
@@ -34,13 +47,10 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2018-10-01' = {
 
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   name: virtualMachineName
-  dependsOn: [
-    networkInterface
-  ]
   location: location
   properties: {
     hardwareProfile: {
-      vmSize: 'Standard_DS3_v2'
+      vmSize: vmSize
     }
     storageProfile: {
       osDisk: {
@@ -87,7 +97,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   }
 }
 
-resource virtualMachineName_aadLoginExtensionName 'Microsoft.Compute/virtualMachines/extensions@2018-10-01' = {
+resource virtualMachineName_aadLoginExtensionName 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
   name: '${virtualMachine.name}/${aadLoginExtensionName}'
   location: location
   properties: {
@@ -97,3 +107,5 @@ resource virtualMachineName_aadLoginExtensionName 'Microsoft.Compute/virtualMach
     autoUpgradeMinorVersion: true
   }
 }
+
+output dsvmId string = virtualMachine.id

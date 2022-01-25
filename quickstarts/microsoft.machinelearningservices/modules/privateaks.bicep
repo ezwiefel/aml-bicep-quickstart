@@ -1,23 +1,36 @@
+// Creates an Azure Kubernetes Services and attaches it to the Azure Machine Learning workspace
+@description('Name of the Azure Kubernetes Service cluster')
 param aksClusterName string
+
+@description('Azure region of the deployment')
 param location string
+
+@description('Tags to add to the resources')
 param tags object
+
+@description('Resource ID for the Azure Kubernetes Service subnet')
 param aksSubnetId string
+
+@description('Name of the Azure Machine Learning workspace')
 param workspaceName string
+
+@description('Name of the Azure Machine Learning attached compute')
 param computeName string
+
+@description('Availability zones')
+param availabilityZones array = [
+  '1'
+  '2'
+  '3'
+]
 
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
   name: aksClusterName
   location: location
-  identity: {
-    type: 'SystemAssigned'
-  }
   tags: tags
   properties: {
     kubernetesVersion: '1.20.7'
     dnsPrefix: '${aksClusterName}-dns'
-    sku: {
-      name: 'Basic'
-    }
     agentPoolProfiles: [
       {
         name: toLower('agentpool')
@@ -29,11 +42,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
         osType: 'Linux'
         mode: 'System'
         type: 'VirtualMachineScaleSets'
-        availabilityZones: [
-          '1'
-          '2'
-          '3'
-      ]
+        availabilityZones: availabilityZones
       }
     ]
     enableRBAC: true
@@ -50,7 +59,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2020-07-01' = {
   }
 }
 
-//Output
 output aksResourceId string = aksCluster.id
 
 resource workspaceName_computeName 'Microsoft.MachineLearningServices/workspaces/computes@2021-01-01' = {
@@ -59,13 +67,10 @@ resource workspaceName_computeName 'Microsoft.MachineLearningServices/workspaces
   properties: {
     computeType: 'AKS'
     resourceId: aksCluster.id
-    // Not tested with this subnet config
     properties: {
       aksNetworkingConfiguration:  {
         subnetId: aksSubnetId
-      } 
-      loadBalancerType: 'InternalLoadBalancer'
-      loadBalancerSubnet: 'snet-scoring'
+      }
     }
   }
 }
